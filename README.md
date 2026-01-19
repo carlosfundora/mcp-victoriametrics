@@ -54,15 +54,9 @@ Here is example of configuration for [Claude Desktop](https://claude.ai/download
 ## Requirements
 
 - [VictoriaMetrics](https://docs.victoriametrics.com/victoriametrics/) or [VictoriaMetrics Cloud](https://docs.victoriametrics.com/victoriametrics-cloud/) instance ([single-node](https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/) or [cluster](https://docs.victoriametrics.com/victoriametrics/cluster-victoriametrics/))
-- Go 1.24 or higher (if you want to build from source)
+- Go 1.26 or higher (if you want to build from source)
 
 ## Installation
-
-### Go
-
-```bash
-go install github.com/VictoriaMetrics-Community/mcp-victoriametrics/cmd/mcp-victoriametrics@latest
-```
 
 ### Binaries
 
@@ -193,6 +187,7 @@ In SSE and HTTP modes the MCP server provides the following endpoints:
 
 | Endpoint             | Description                                                                                       |
 |----------------------|---------------------------------------------------------------------------------------------------|
+| `/`                  | Landing page with setup help, tool inspection, and chat playground                                |
 | `/sse` + `/message`  | Endpoints for messages in SSE mode (for MCP clients that support SSE)                             |
 | `/mcp`               | HTTP endpoint for streaming messages in HTTP mode (for MCP clients that support Streamable HTTP)  |
 | `/metrics`           | Metrics in Prometheus format for monitoring the MCP server                                        |

@@ -11,6 +11,9 @@ main
 *.tmp
 coverage.txt
 *~
+node_modules/
 dist/
 bin/
 /mcp-victoriametrics
+!web/dist/
+!web/dist/**
