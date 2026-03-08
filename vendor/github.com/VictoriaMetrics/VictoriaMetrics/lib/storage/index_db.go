@@ -12,8 +12,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unsafe"
 
+	"github.com/VictoriaMetrics/fastcache"
 	"github.com/VictoriaMetrics/metricsql"
 	"github.com/cespare/xxhash/v2"
 
@@ -28,6 +28,7 @@ import (
 	"github.com/VictoriaMetrics/VictoriaMetrics/lib/querytracer"
 	"github.com/VictoriaMetrics/VictoriaMetrics/lib/slicesutil"
 	"github.com/VictoriaMetrics/VictoriaMetrics/lib/uint64set"
+	"github.com/VictoriaMetrics/VictoriaMetrics/lib/workingsetcache"
 )
 
 const (
@@ -124,7 +125,7 @@ type indexDB struct {
 
 	// Cache for (date, tagFilter) -> loopsCount, which is used for reducing
 	// the amount of work when matching a set of filters.
-	loopsPerDateTagFilterCache *lrucache.Cache
+	loopsPerDateTagFilterCache *workingsetcache.Cache
 
 	// A cache that stores metricIDs that have been added to the index.
 	// The cache is not populated on startup nor does it store a complete set of
@@ -162,10 +163,6 @@ func getTagFiltersCacheSize() uint64 {
 	return maxTagFiltersCacheSize
 }
 
-func getTagFiltersLoopsCacheSize() uint64 {
-	return uint64(float64(memory.Allowed()) / 128)
-}
-
 var maxMetricIDsForDirectLabelsLookup int = 100e3
 
 func mustOpenIndexDB(id uint64, tr TimeRange, name, path string, s *Storage, isReadOnly *atomic.Bool, noRegisterNewSeries bool) *indexDB {
@@ -183,7 +180,7 @@ func mustOpenIndexDB(id uint64, tr TimeRange, name, path string, s *Storage, isR
 		tb:                             tb,
 		s:                              s,
 		tagFiltersToMetricIDsCache:     tfssCache,
-		loopsPerDateTagFilterCache:     lrucache.NewCache(getTagFiltersLoopsCacheSize),
+		loopsPerDateTagFilterCache:     workingsetcache.New(memory.Allowed() / 128),
 		metricIDCache:                  newMetricIDCache(),
 		dateMetricIDCache:              newDateMetricIDCache(),
 	}
@@ -202,6 +199,12 @@ type IndexDBMetrics struct {
 	TagFiltersToMetricIDsCacheRequests     uint64
 	TagFiltersToMetricIDsCacheMisses       uint64
 	TagFiltersToMetricIDsCacheResets       uint64
+
+	LoopsPerDateTagFilterCacheSize         uint64
+	LoopsPerDateTagFilterCacheSizeBytes    uint64
+	LoopsPerDateTagFilterCacheSizeMaxBytes uint64
+	LoopsPerDateTagFilterCacheRequests     uint64
+	LoopsPerDateTagFilterCacheMisses       uint64
 
 	MetricIDCacheSize           uint64
 	MetricIDCacheSizeBytes      uint64
@@ -263,6 +266,18 @@ func (db *indexDB) UpdateMetrics(m *IndexDBMetrics) {
 	m.TagFiltersToMetricIDsCacheResets += db.tagFiltersToMetricIDsCache.Resets()
 
 	// Report only once and for either the first met indexDB instance or whose
+	// loopsPerDateTagFilterCache is utilized the most.
+	var cs fastcache.Stats
+	db.loopsPerDateTagFilterCache.UpdateStats(&cs)
+	if cs.BytesSize > m.LoopsPerDateTagFilterCacheSizeBytes {
+		m.LoopsPerDateTagFilterCacheSize = cs.EntriesCount
+		m.LoopsPerDateTagFilterCacheSizeBytes = cs.BytesSize
+		m.LoopsPerDateTagFilterCacheSizeMaxBytes = cs.MaxBytesSize
+	}
+	m.LoopsPerDateTagFilterCacheRequests += cs.GetCalls
+	m.LoopsPerDateTagFilterCacheMisses += cs.Misses
+
+	// Report only once and for either the first met indexDB instance or whose
 	// metricIDCache is utilized the most.
 	mcs := db.metricIDCache.Stats()
 	if m.MetricIDCacheSizeBytes == 0 || mcs.SizeBytes > m.MetricIDCacheSizeBytes {
@@ -300,7 +315,7 @@ func (db *indexDB) MustClose() {
 
 	// Free space occupied by caches owned by db.
 	db.tagFiltersToMetricIDsCache.MustStop()
-	db.loopsPerDateTagFilterCache.MustStop()
+	db.loopsPerDateTagFilterCache.Stop()
 	db.metricIDCache.MustStop()
 	db.dateMetricIDCache.MustStop()
 
@@ -340,28 +355,6 @@ func (db *indexDB) putMetricIDsToTagFiltersCache(qt *querytracer.Tracer, metricI
 	qt.Printf("put %d metricIDs in cache", metricIDs.Len())
 	db.tagFiltersToMetricIDsCache.PutEntry(string(key), metricIDs)
 	qt.Printf("stored %d metricIDs into cache", metricIDs.Len())
-}
-
-func (db *indexDB) getFromMetricIDCache(dst *TSID, metricID uint64) error {
-	// There is no need in checking for deleted metricIDs here, since they
-	// must be checked by the caller.
-	buf := (*[unsafe.Sizeof(*dst)]byte)(unsafe.Pointer(dst))
-	key := (*[unsafe.Sizeof(metricID)]byte)(unsafe.Pointer(&metricID))
-	tmp := db.s.metricIDCache.Get(buf[:0], key[:])
-	if len(tmp) == 0 {
-		// The TSID for the given metricID wasn't found in the cache.
-		return io.EOF
-	}
-	if &tmp[0] != &buf[0] || len(tmp) != len(buf) {
-		return fmt.Errorf("corrupted MetricID->TSID cache: unexpected size for metricID=%d value; got %d bytes; want %d bytes", metricID, len(tmp), len(buf))
-	}
-	return nil
-}
-
-func (db *indexDB) putToMetricIDCache(metricID uint64, tsid *TSID) {
-	buf := (*[unsafe.Sizeof(*tsid)]byte)(unsafe.Pointer(tsid))
-	key := (*[unsafe.Sizeof(metricID)]byte)(unsafe.Pointer(&metricID))
-	db.s.metricIDCache.Set(key[:], buf[:])
 }
 
 func marshalTagFiltersKey(dst []byte, tfss []*TagFilters, tr TimeRange) []byte {
@@ -1752,7 +1745,7 @@ func (db *indexDB) SearchTSIDs(qt *querytracer.Tracer, tfss []*TagFilters, tr Ti
 			// Try obtaining TSIDs from MetricID->TSID cache. This is much faster
 			// than scanning the mergeset if it contains a lot of metricIDs.
 			tsid := &tsids[i]
-			err = db.getFromMetricIDCache(tsid, metricID)
+			err = db.s.getTSIDByMetricIDFromCache(tsid, metricID)
 			if err == nil {
 				// Fast path - the tsid for metricID is found in cache.
 				i++
@@ -1774,7 +1767,7 @@ func (db *indexDB) SearchTSIDs(qt *querytracer.Tracer, tfss []*TagFilters, tr Ti
 				}
 				continue
 			}
-			db.putToMetricIDCache(metricID, tsid)
+			db.s.putTSIDByMetricIDToCache(metricID, tsid)
 			i++
 		}
 		return true
@@ -1907,7 +1900,7 @@ func (is *indexSearch) getTSIDByMetricName(dst *TSID, metricName []byte, date ui
 }
 
 func (is *indexSearch) searchMetricNameWithCache(dst []byte, metricID uint64) ([]byte, bool) {
-	metricName := is.db.s.getMetricNameFromCache(dst, metricID)
+	metricName := is.db.s.getMetricNameByMetricIDFromCache(dst, metricID)
 	if len(metricName) > len(dst) {
 		return metricName, true
 	}
@@ -1916,7 +1909,7 @@ func (is *indexSearch) searchMetricNameWithCache(dst []byte, metricID uint64) ([
 	if ok {
 		// There is no need in verifying whether the given metricID is deleted,
 		// since the filtering must be performed before calling this func.
-		is.db.s.putMetricNameToCache(metricID, dst)
+		is.db.s.putMetricNameByMetricIDToCache(metricID, dst)
 		return dst, true
 	}
 	return dst, false
@@ -2969,32 +2962,25 @@ func (is *indexSearch) getLoopsCountAndTimestampForDateFilter(date uint64, tf *t
 	is.kb.B = appendDateTagFilterCacheKey(is.kb.B[:0], is.db.name, date, tf)
 	kb := kbPool.Get()
 	defer kbPool.Put(kb)
-	e := is.db.loopsPerDateTagFilterCache.GetEntry(bytesutil.ToUnsafeString(is.kb.B))
-	if e == nil {
+	kb.B = is.db.loopsPerDateTagFilterCache.Get(kb.B[:0], is.kb.B)
+	if len(kb.B) != 3*8 {
 		return 0, 0, 0
 	}
-	v := e.(*tagFiltersLoops)
-	return v.loopsCount, v.filterLoopsCount, v.timestamp
-}
-
-type tagFiltersLoops struct {
-	loopsCount       int64
-	filterLoopsCount int64
-	timestamp        uint64
-}
-
-func (v *tagFiltersLoops) SizeBytes() uint64 {
-	return uint64(unsafe.Sizeof(*v))
+	loopsCount := encoding.UnmarshalInt64(kb.B)
+	filterLoopsCount := encoding.UnmarshalInt64(kb.B[8:])
+	timestamp := encoding.UnmarshalUint64(kb.B[16:])
+	return loopsCount, filterLoopsCount, timestamp
 }
 
 func (is *indexSearch) storeLoopsCountForDateFilter(date uint64, tf *tagFilter, loopsCount, filterLoopsCount int64) {
-	v := tagFiltersLoops{
-		loopsCount:       loopsCount,
-		filterLoopsCount: filterLoopsCount,
-		timestamp:        fasttime.UnixTimestamp(),
-	}
+	currentTimestamp := fasttime.UnixTimestamp()
 	is.kb.B = appendDateTagFilterCacheKey(is.kb.B[:0], is.db.name, date, tf)
-	is.db.loopsPerDateTagFilterCache.PutEntry(string(is.kb.B), &v)
+	kb := kbPool.Get()
+	kb.B = encoding.MarshalInt64(kb.B[:0], loopsCount)
+	kb.B = encoding.MarshalInt64(kb.B, filterLoopsCount)
+	kb.B = encoding.MarshalUint64(kb.B, currentTimestamp)
+	is.db.loopsPerDateTagFilterCache.Set(is.kb.B, kb.B)
+	kbPool.Put(kb)
 }
 
 func appendDateTagFilterCacheKey(dst []byte, indexDBName string, date uint64, tf *tagFilter) []byte {
@@ -3215,7 +3201,7 @@ func (mp *tagToMetricIDsRowParser) ParseMetricIDs() {
 	mp.MetricIDs = slicesutil.SetLength(mp.MetricIDs, n)
 	metricIDs := mp.MetricIDs
 	_ = metricIDs[n-1]
-	for i := 0; i < n; i++ {
+	for i := range n {
 		if len(tail) < 8 {
 			logger.Panicf("BUG: tail cannot be smaller than 8 bytes; got %d bytes; tail=%X", len(tail), tail)
 			return
