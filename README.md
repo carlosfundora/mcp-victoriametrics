@@ -630,28 +630,35 @@ But you can use any other tools and combine them in your own way.
 
 In [SSE and HTTP modes](#modes) the MCP Server provides metrics in Prometheus format (see [endpoints](#endpoints)) and you can find [in repo simple grafana dashboard](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/blob/main/dashboard/mcp-victoriametrics-grafana.json) for these metrics. 
 
+## FAQ
+
+### Why is the MCP server using more resources than I would expect from a simple API proxy?
+
+The server contains an embedded vector database with VictoriaMetrics documentation and blog posts for the `documentation` tool.
+It helps to answer for complex questions about VictoriaMetrics without providing all data to LLM.  
+This is the main source of resource usage. To reduce it, add `documentation` to `MCP_DISABLED_TOOLS` environment variable to completely disable the vector database loading. See [tools configuration](#tools) for details.
+
+### How to use one MCP server instance for several VictoriaMetrics instances?
+
+You can use `MCP_PASSTHROUGH_HEADERS` parameter in the MCP Server together with [Header-based routing in vmauth](https://docs.victoriametrics.com/victoriametrics/vmauth/#routing-by-header) to route MCP calls between instances based on HTTP header values from you MCP client config.  
+
 ## Roadmap
 
 - [x] Support "Prettify query" tool (done in [`v0.0.5`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.5))
 - [x] Support "Explain query" tool (done in [`v0.0.6`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.6))
 - [x] Support CI pipeline for building and pushing multiarch docker images (done in [`v1.0.0`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v1.0.0))
-- [ ] Support tool for analysis of [Query execution statistics](https://docs.victoriametrics.com/victoriametrics/query-stats/)
-- [ ] Support vmanomaly
 - [x] Support tool for [unit-testing of alerting and recording rules](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/) (done in [`v0.0.7`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.7))
 - [x] Support optional integration with [VictoriaMetrics Cloud](https://victoriametrics.com/products/cloud/) (via [API keys](https://docs.victoriametrics.com/victoriametrics-cloud/api/)) (done in [`v0.0.9`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.9))
 - [ ] Add some extra knowledge to server in addition to current documentation tool:
   - [x] [VictoriaMetrics blog](https://victoriametrics.com/blog/) posts (done in [`v1.1.0`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v1.1.0))
-  - [ ] Github issues
-  - [ ] Public slack chat history
-  - [ ] CRD schemas
-  - [ ] Alerting and recording rule sets
+  - [x] CRD schemas
 - [ ] Implement multitenant version of MCP (that will support several deployments)
 - [ ] Add flags/configs validation tool
 - [ ] Support tools for vmagent API
 - [ ] Support [new vmalert API](https://github.com/VictoriaMetrics/VictoriaMetrics/pull/9046/files)
 - [x] Enabling/disabling tools via configuration (done in [`v0.0.8`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.8))
 - [ ] Tools for Alertmanager APIs [#6](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/issues/6)
-- [ ] Support for [metrics metadata](https://github.com/VictoriaMetrics/VictoriaMetrics/issues/2974) in case of implementation in VictoriaMetrics
+- [x] Support for [metrics metadata](https://github.com/VictoriaMetrics/VictoriaMetrics/issues/2974) in case of implementation in VictoriaMetrics
 - [ ] Support authentication
 - [ ] Add static index page with description and links to documentation
 
