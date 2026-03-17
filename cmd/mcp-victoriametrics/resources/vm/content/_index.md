@@ -122,7 +122,7 @@ resources:
   - title: "VictoriaMetrics MCP"
     icon: "vm-mcp"
     text: "Implementation of Model Context Protocol (MCP) server for VictoriaMetrics."
-    url: "https://github.com/VictoriaMetrics-Community/mcp-victoriametrics"
+    url: "https://github.com/VictoriaMetrics/mcp-victoriametrics"
 ---
 
 {{< ds-homepage >}}

@@ -1,8 +1,8 @@
 # <img width="25" height="25" alt="vm-community-icon" src="https://github.com/user-attachments/assets/1c060750-370a-4440-b619-78b78c7abd7a" /> VictoriaMetrics MCP Server
 
-[![Latest Release](https://img.shields.io/github/v/release/VictoriaMetrics-Community/mcp-victoriametrics?sort=semver&label=&filter=!*-victorialogs&logo=github&labelColor=gray&color=gray&link=https%3A%2F%2Fgithub.com%2FVictoriaMetrics-Community%2Fmcp-victoriametrics%2Freleases%2Flatest)](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases)
-[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/VictoriaMetrics-Community/mcp-victoriametrics)](https://archestra.ai/mcp-catalog/victoriametrics-community__mcp-victoriametrics)
-![License](https://img.shields.io/github/license/VictoriaMetrics-Community/mcp-victoriametrics?labelColor=green&label=&link=https%3A%2F%2Fgithub.com%2FVictoriaMetrics-Community%2Fmcp-victoriametrics%2Fblob%2Fmain%2FLICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/VictoriaMetrics/mcp-victoriametrics?sort=semver&label=&filter=!*-victorialogs&logo=github&labelColor=gray&color=gray&link=https%3A%2F%2Fgithub.com%2FVictoriaMetrics%2Fmcp-victoriametrics%2Freleases%2Flatest)](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases)
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/VictoriaMetrics/mcp-victoriametrics)](https://archestra.ai/mcp-catalog/victoriametrics-community__mcp-victoriametrics)
+![License](https://img.shields.io/github/license/VictoriaMetrics/mcp-victoriametrics?labelColor=green&label=&link=https%3A%2F%2Fgithub.com%2FVictoriaMetrics%2Fmcp-victoriametrics%2Fblob%2Fmain%2FLICENSE)
 ![Slack](https://img.shields.io/badge/Join-4A154B?logo=slack&link=https%3A%2F%2Fslack.victoriametrics.com)
 ![X](https://img.shields.io/twitter/follow/VictoriaMetrics?style=flat&label=Follow&color=black&logo=x&labelColor=black&link=https%3A%2F%2Fx.com%2FVictoriaMetrics)
 ![Reddit](https://img.shields.io/reddit/subreddit-subscribers/VictoriaMetrics?style=flat&label=Join&labelColor=red&logoColor=white&logo=reddit&link=https%3A%2F%2Fwww.reddit.com%2Fr%2FVictoriaMetrics)
@@ -61,18 +61,18 @@ Here is example of configuration for [Claude Desktop](https://claude.ai/download
 ### Go
 
 ```bash
-go install github.com/VictoriaMetrics-Community/mcp-victoriametrics/cmd/mcp-victoriametrics@latest
+go install github.com/VictoriaMetrics/mcp-victoriametrics/cmd/mcp-victoriametrics@latest
 ```
 
 ### Binaries
 
-Just download the latest release from [Releases](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases) page and put it to your PATH.
+Just download the latest release from [Releases](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases) page and put it to your PATH.
 
 Example for Linux x86_64 (note that other architectures and platforms are also available):
 
 ```bash
-latest=$(curl -s https://api.github.com/repos/VictoriaMetrics-Community/mcp-victoriametrics/releases/latest | grep 'tag_name' | cut -d\" -f4)
-wget https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/download/$latest/mcp-victoriametrics_Linux_x86_64.tar.gz
+latest=$(curl -s https://api.github.com/repos/VictoriaMetrics/mcp-victoriametrics/releases/latest | grep 'tag_name' | cut -d\" -f4)
+wget https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/download/$latest/mcp-victoriametrics_Linux_x86_64.tar.gz
 tar axvf mcp-victoriametrics_Linux_x86_64.tar.gz
 ```
 
@@ -89,7 +89,7 @@ docker run -d --name mcp-victoriametrics \
   -e MCP_SERVER_MODE=sse \
   -e MCP_LISTEN_ADDR=:8080 \
   -p 8080:8080 \
-  ghcr.io/victoriametrics-community/mcp-victoriametrics
+  ghcr.io/victoriametrics/mcp-victoriametrics
 ```
 
 You should replace environment variables with your own parameters.
@@ -97,7 +97,7 @@ You should replace environment variables with your own parameters.
 Note that the `MCP_SERVER_MODE=http` flag is used to enable Streamable HTTP mode. 
 More details about server modes can be found in the [Configuration](#configuration) section.
 
-See available docker images in [github registry](https://github.com/orgs/VictoriaMetrics-Community/packages/container/package/mcp-victoriametrics).
+See available docker images in [github registry](https://github.com/orgs/VictoriaMetrics/packages/container/package/mcp-victoriametrics).
 
 Also see [Using Docker instead of binary](#using-docker-instead-of-binary) section for more details about using Docker with MCP server with clients in stdio mode.
 
@@ -108,7 +108,7 @@ For building binary from source code you can use the following approach:
 - Clone repo:
   
   ```bash
-  git clone https://github.com/VictoriaMetrics-Community/mcp-victoriametrics.git
+  git clone https://github.com/VictoriaMetrics/mcp-victoriametrics.git
   cd mcp-victoriametrics
   ```
 - Build binary from cloned source code: 
@@ -408,7 +408,7 @@ You should replace run command in configuration examples above in the following 
           "-e", "VM_INSTANCE_TYPE",
           "-e", "VM_INSTANCE_BEARER_TOKEN",
           "-e", "VM_INSTANCE_HEADERS",
-          "ghcr.io/victoriametrics-community/mcp-victoriametrics",
+          "ghcr.io/victoriametrics/mcp-victoriametrics",
         ],
       "env": {
         "VM_INSTANCE_ENTRYPOINT": "<YOUR_VM_INSTANCE>",
@@ -628,7 +628,7 @@ But you can use any other tools and combine them in your own way.
 
 ## Monitoring
 
-In [SSE and HTTP modes](#modes) the MCP Server provides metrics in Prometheus format (see [endpoints](#endpoints)) and you can find [in repo simple grafana dashboard](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/blob/main/dashboard/mcp-victoriametrics-grafana.json) for these metrics. 
+In [SSE and HTTP modes](#modes) the MCP Server provides metrics in Prometheus format (see [endpoints](#endpoints)) and you can find [in repo simple grafana dashboard](https://github.com/VictoriaMetrics/mcp-victoriametrics/blob/main/dashboard/mcp-victoriametrics-grafana.json) for these metrics. 
 
 ## FAQ
 
@@ -644,20 +644,20 @@ You can use `MCP_PASSTHROUGH_HEADERS` parameter in the MCP Server together with 
 
 ## Roadmap
 
-- [x] Support "Prettify query" tool (done in [`v0.0.5`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.5))
-- [x] Support "Explain query" tool (done in [`v0.0.6`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.6))
-- [x] Support CI pipeline for building and pushing multiarch docker images (done in [`v1.0.0`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v1.0.0))
-- [x] Support tool for [unit-testing of alerting and recording rules](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/) (done in [`v0.0.7`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.7))
-- [x] Support optional integration with [VictoriaMetrics Cloud](https://victoriametrics.com/products/cloud/) (via [API keys](https://docs.victoriametrics.com/victoriametrics-cloud/api/)) (done in [`v0.0.9`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.9))
+- [x] Support "Prettify query" tool (done in [`v0.0.5`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v0.0.5))
+- [x] Support "Explain query" tool (done in [`v0.0.6`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v0.0.6))
+- [x] Support CI pipeline for building and pushing multiarch docker images (done in [`v1.0.0`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v1.0.0))
+- [x] Support tool for [unit-testing of alerting and recording rules](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/) (done in [`v0.0.7`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v0.0.7))
+- [x] Support optional integration with [VictoriaMetrics Cloud](https://victoriametrics.com/products/cloud/) (via [API keys](https://docs.victoriametrics.com/victoriametrics-cloud/api/)) (done in [`v0.0.9`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v0.0.9))
 - [ ] Add some extra knowledge to server in addition to current documentation tool:
-  - [x] [VictoriaMetrics blog](https://victoriametrics.com/blog/) posts (done in [`v1.1.0`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v1.1.0))
+  - [x] [VictoriaMetrics blog](https://victoriametrics.com/blog/) posts (done in [`v1.1.0`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v1.1.0))
   - [x] CRD schemas
 - [ ] Implement multitenant version of MCP (that will support several deployments)
 - [ ] Add flags/configs validation tool
 - [ ] Support tools for vmagent API
 - [ ] Support [new vmalert API](https://github.com/VictoriaMetrics/VictoriaMetrics/pull/9046/files)
-- [x] Enabling/disabling tools via configuration (done in [`v0.0.8`](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/releases/tag/v0.0.8))
-- [ ] Tools for Alertmanager APIs [#6](https://github.com/VictoriaMetrics-Community/mcp-victoriametrics/issues/6)
+- [x] Enabling/disabling tools via configuration (done in [`v0.0.8`](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases/tag/v0.0.8))
+- [ ] Tools for Alertmanager APIs [#6](https://github.com/VictoriaMetrics/mcp-victoriametrics/issues/6)
 - [x] Support for [metrics metadata](https://github.com/VictoriaMetrics/VictoriaMetrics/issues/2974) in case of implementation in VictoriaMetrics
 - [ ] Support authentication
 - [ ] Add static index page with description and links to documentation

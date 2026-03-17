@@ -9,7 +9,7 @@ import (
 
 	vmcloud "github.com/VictoriaMetrics/victoriametrics-cloud-api-go/v1"
 
-	"github.com/VictoriaMetrics-Community/mcp-victoriametrics/cmd/mcp-victoriametrics/config"
+	"github.com/VictoriaMetrics/mcp-victoriametrics/cmd/mcp-victoriametrics/config"
 )
 
 const toolNameFlags = "flags"

@@ -12,7 +12,7 @@ import (
 
 	vmcloud "github.com/VictoriaMetrics/victoriametrics-cloud-api-go/v1"
 
-	"github.com/VictoriaMetrics-Community/mcp-victoriametrics/cmd/mcp-victoriametrics/config"
+	"github.com/VictoriaMetrics/mcp-victoriametrics/cmd/mcp-victoriametrics/config"
 )
 
 func CreateSelectRequest(ctx context.Context, cfg *config.Config, tcr mcp.CallToolRequest, path ...string) (*http.Request, error) {
