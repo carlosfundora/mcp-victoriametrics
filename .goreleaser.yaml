@@ -22,7 +22,7 @@ builds:
         goarch: '386'
       - goos: windows
         goarch: arm
-    main: ./cmd/mcp-victoriametrics/main.go
+    main: ./cmd/mcp-victoriametrics
     binary: mcp-victoriametrics
     ldflags:
       - -X main.version={{.Version}} -X main.date={{ .CommitDate }}
