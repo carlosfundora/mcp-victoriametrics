@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	webui "github.com/VictoriaMetrics-Community/mcp-victoriametrics/web"
+	webui "github.com/VictoriaMetrics/mcp-victoriametrics/web"
 )
 
 func spaHandler() http.Handler {

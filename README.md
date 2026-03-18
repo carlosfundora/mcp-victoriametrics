@@ -24,8 +24,11 @@ This MCP server allows you to use almost all read-only APIs of VictoriaMetrics, 
 - Analyzing, tracing, prettifying and explaining your queries
 - Debugging your relabeling rules, downsampling and retention policy configurations 
 - Integration with [VictoriaMetrics Cloud](https://docs.victoriametrics.com/victoriametrics-cloud/)
+- UI with setup instrinctions and tools inspection on the root endpoint (only in Streamable HTTP mode)
  
 In addition, the MCP server contains embedded up-to-date documentation and is able to search it without online access.
+
+![image](./ui.png)
 
 More details about the exact available tools and prompts can be found in the [Usage](#usage) section.
 

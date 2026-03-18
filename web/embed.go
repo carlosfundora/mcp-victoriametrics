@@ -4,5 +4,5 @@ import "embed"
 
 // DistFS provides the embedded Vite build output.
 //
-//go:embed dist/* dist/assets/*
+//go:embed dist/*
 var DistFS embed.FS

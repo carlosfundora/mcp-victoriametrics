@@ -26,7 +26,7 @@ ui-install:
 	cd web && npm install
 
 ui-build: ui-install
-	cd web && npm run build
+	cd web && npm run build && touch ./dist/.gitkeep
 
 ui-dev:
 	cd web && npm run dev

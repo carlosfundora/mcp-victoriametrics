@@ -93,7 +93,7 @@ export function ClientConfigs() {
     {
       title: "Claude Desktop",
       description: "Official Claude desktop app by Anthropic",
-      icon: <ClaudeAI />,
+      icon: <ClaudeAI className="h-6 w-6" />,
       badge: "Recommended",
       defaultOpen: true,
       config: `{
@@ -108,13 +108,13 @@ export function ClientConfigs() {
     {
       title: "Claude Code (CLI)",
       description: "Anthropic's official CLI tool for developers",
-      icon: <ClaudeAI />,
+      icon: <ClaudeAI className="h-6 w-6" />,
       config: `claude mcp add victoriametrics --transport http ${serverUrl}/mcp`,
     },
     {
       title: "Cursor IDE",
       description: "AI-powered code editor with MCP support",
-      icon: <Cursor />,
+      icon: <Cursor className="h-6 w-6" />,
       config: `{
   "mcpServers": {
     "victoriametrics": {
@@ -126,13 +126,13 @@ export function ClientConfigs() {
     {
       title: "Codex CLI",
       description: "OpenAI's open-source coding agent CLI",
-      icon: <OpenAI />,
+      icon: <OpenAI className="h-6 w-6" />,
       config: `codex mcp add victoriametrics --url ${serverUrl}/mcp`,
     },
     {
       title: "Visual Studio Code",
       description: "Add to .vscode/mcp.json in your workspace",
-      icon: <VisualStudioCode />,
+      icon: <VisualStudioCode className="h-6 w-6" />,
       config: `{
   "servers": {
     "victoriametrics": {
@@ -145,7 +145,7 @@ export function ClientConfigs() {
     {
       title: "Zed",
       description: "Add to Zed settings.json or use Agent Panel settings",
-      icon: <Zed />,
+      icon: <Zed className="h-6 w-6" />,
       config: `{
   "context_servers": {
     "victoriametrics": {
@@ -157,7 +157,7 @@ export function ClientConfigs() {
     {
       title: "JetBrains IDEs",
       description: "IntelliJ IDEA, GoLand, PyCharm, WebStorm, and others",
-      icon: <JetBrains />,
+      icon: <JetBrains className="h-6 w-6" />,
       config: `{
   "mcpServers": {
     "victoriametrics": {
@@ -169,13 +169,13 @@ export function ClientConfigs() {
     {
       title: "Gemini CLI",
       description: "Google's AI coding agent for the terminal",
-      icon: <Gemini />,
+      icon: <Gemini className="h-6 w-6" />,
       config: `gemini mcp add --name victoriametrics --transport http ${serverUrl}/mcp`,
     },
     {
       title: "OpenCode",
       description: "Open-source TUI for AI-assisted coding",
-      icon: <OpenCode />,
+      icon: <OpenCode className="h-6 w-6" />,
       config: `{
   "mcp": {
     "victoriametrics": {
